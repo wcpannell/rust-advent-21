@@ -20,7 +20,7 @@ struct Command {
 impl Command {
     fn from_string(text: String) -> Result<Command, MyError> {
         let text = text.to_lowercase();
-        let tokens: Vec<&str> = text.split(' ').collect();
+        let tokens: Vec<&str> = text.split_whitespace().collect();
         let dir: Direction = match tokens[0] {
             "forward" => Direction::Forward,
             "up" => Direction::Up,
