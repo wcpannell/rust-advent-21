@@ -1,7 +1,24 @@
 #[derive(Debug)]
-enum MyError {
+pub enum MyError {
     InvalidDirection,
     InvalidIntParse,
+}
+
+impl std::error::Error for MyError {}
+
+impl std::fmt::Display for MyError {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match self {
+            MyError::InvalidDirection => write!(f, "Invalid Direction"),
+            MyError::InvalidIntParse => write!(f, "i64 Parsing Error"),
+        }
+    }
+}
+
+impl From<std::num::ParseIntError> for MyError {
+    fn from(_: std::num::ParseIntError) -> Self {
+        MyError::InvalidIntParse
+    }
 }
 
 #[derive(Debug)]
@@ -21,27 +38,22 @@ impl Command {
     fn from_string(text: String) -> Result<Command, MyError> {
         let text = text.to_lowercase();
         let tokens: Vec<&str> = text.split_whitespace().collect();
-        let dir: Direction = match tokens[0] {
-            "forward" => Direction::Forward,
-            "up" => Direction::Up,
-            "down" => Direction::Down,
-            _ => {
-                eprintln!("invalid direction found in line {:?}!", text);
-                return Err(MyError::InvalidDirection);
-            }
-        };
-        let mag = match tokens[1].trim().parse() {
-            Ok(val) => val,
-            Err(e) => {
-                eprintln!("Got Error parsing command string magnitude {:?}", e);
-                return Err(MyError::InvalidIntParse);
-            }
-        };
-
         Ok(Command {
-            direction: dir,
-            magnitude: mag,
+            direction: parse_direciton(tokens[0])?,
+            magnitude: tokens[1].trim().parse()?,
         })
+    }
+}
+
+fn parse_direciton(text: &str) -> Result<Direction, MyError> {
+    match text {
+        "forward" => Ok(Direction::Forward),
+        "up" => Ok(Direction::Up),
+        "down" => Ok(Direction::Down),
+        _ => {
+            eprintln!("invalid direction found in line {:?}!", text);
+            Err(MyError::InvalidDirection)
+        }
     }
 }
 
